@@ -1,5 +1,13 @@
 package too.sgacf.repository;
 
-public interface IGeneroRepository {
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import too.sgacf.model.GeneroModel;
+
+@Repository
+public interface IGeneroRepository extends JpaRepository<GeneroModel, Long>{
 
 }
