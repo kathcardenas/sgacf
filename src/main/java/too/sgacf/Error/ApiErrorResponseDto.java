@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ApiErrorResponse {
+public class ApiErrorResponseDto {
 
-    private int code;
     private String message;
 
 }

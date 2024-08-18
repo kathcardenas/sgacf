@@ -13,16 +13,20 @@ import lombok.NoArgsConstructor;
 @Table(name = "generos")
 @Data
 @NoArgsConstructor
-public class GeneroModel {
+public class GenreModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 10)
-    private String nombre;
+    @Column(name = "nombre", nullable = false, length = 10)
+    private String name;
 
-    public GeneroModel(String nombre) {
-        this.nombre = nombre;
+    @Column(name = "estado",nullable = false)
+    private boolean status;
+
+    public GenreModel(String name, boolean status) {
+        this.name = name;
+        this.status = status;
     }
 }
