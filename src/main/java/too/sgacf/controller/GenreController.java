@@ -8,6 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import too.sgacf.dto.GenreDto;
 import too.sgacf.service.GenreService;
@@ -23,7 +30,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1")
-public class GeneroController {
+@Tag(name = "Generos", description = "Controlador para géneros")
+public class GenreController {
 
     @Autowired
     private GenreService genreService;
@@ -36,17 +44,42 @@ public class GeneroController {
      * GET /api/v1/generos?estado=value - Retrieves genres by estado
      */
     @GetMapping("/generos")
+    @Operation(
+        summary = "Listar Géneros",
+        description = "Recupera todos los géneros o géneros por estado",
+        parameters = {
+            @Parameter(
+                name = "status",
+                description = "Variable de estado activo o desactivado",
+                required = false,
+                in = ParameterIn.DEFAULT,
+                schema = @Schema(
+                    type = "boolean"
+                )
+            )
+        }
+    )
     public ResponseEntity<?> getMethod(@RequestParam(required = false) Boolean status) {
         List<GenreDto> generos = (status == null) ? genreService.listAllGeneros() : genreService.listByStatus(status);
         return generos.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No existen registros.")
                 : ResponseEntity.status(HttpStatus.OK).body(generos);
     }
 
-    /*
-     * GET /api/v1/generos/search?q=value - Retrieves all genres by query
-     */
+    @Operation(
+        summary = "Filtrar Géneros por palabra",
+        parameters = {
+            @Parameter(
+                name = "q",
+                description = "Palabra de filtrado"
+                
+            )
+        }
+    )
     @GetMapping("/generos/search")
     public ResponseEntity<?> getMethodQuery(@RequestParam String q) {
+        if (q == null) {
+            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Debe ingresar un texto para realizar la búsqueda.");
+        }
         List<GenreDto> genres = genreService.listByQuery(q);
         return  genres.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.")
         : ResponseEntity.status(HttpStatus.OK).body(this.genreService.listByQuery(q));
@@ -54,7 +87,7 @@ public class GeneroController {
 
     /*
      * {
-     * "name": "Prueba 5",
+     * "name": "Prueba",
      * "status": true
      * }
      */
@@ -72,7 +105,7 @@ public class GeneroController {
     public ResponseEntity<?> putMethod(@PathVariable("id") Long id, @Valid @RequestBody GenreDto dto) {
         GenreDto data = this.genreService.findById(id);
         if (data == null) {
-            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Recurso no encontrado.");
+            return responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "Recurso no encontrado.");
         }
         try {
             data.setName(dto.getName());
@@ -87,7 +120,7 @@ public class GeneroController {
     public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id) {
         GenreDto data = this.genreService.findById(id);
         if (data == null) {
-            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Recurso no encontrado.");
+            return responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "Recurso no encontrado.");
         }
         try {
             this.genreService.delete(data.getId());
