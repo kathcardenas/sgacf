@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import too.sgacf.dto.GenreDto;
 import too.sgacf.service.GenreService;
@@ -59,10 +58,24 @@ public class GenreController {
             )
         }
     )
-    public ResponseEntity<?> getMethod(@RequestParam(required = false) Boolean status) {
-        List<GenreDto> generos = (status == null) ? genreService.listAllGeneros() : genreService.listByStatus(status);
-        return generos.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No existen registros.")
-                : ResponseEntity.status(HttpStatus.OK).body(generos);
+    public ResponseEntity<?> getMethod(@RequestParam(required = false) String status) {
+        if (status != null) {
+            if (status.isEmpty()) {
+                return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Debe ingresar un estado.");
+            }
+            if (!status.equalsIgnoreCase("true") && !status.equalsIgnoreCase("false")) {
+                return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "El estado debe ser 'true' o 'false'.");
+            }
+        }
+
+        Boolean sStatus = status != null ? Boolean.parseBoolean(status) : null;
+
+        List<GenreDto> generos = (sStatus == null) ? genreService.listAllGeneros() 
+                : genreService.listByStatus(sStatus);
+
+        return generos.isEmpty() ? 
+            responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No existen registros.") :
+            ResponseEntity.status(HttpStatus.OK).body(generos);
     }
 
     @Operation(
@@ -77,14 +90,15 @@ public class GenreController {
     )
     @GetMapping("/generos/search")
     public ResponseEntity<?> getMethodQuery(@RequestParam String q) {
-        if (q == null) {
-            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Debe ingresar un texto para realizar la búsqueda.");
+        try {
+            List<GenreDto> genres = genreService.listByQuery(q);
+            return genres.isEmpty() ? 
+                responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") : 
+                ResponseEntity.status(HttpStatus.OK).body(genres);
+        } catch (IllegalArgumentException e) {
+            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        List<GenreDto> genres = genreService.listByQuery(q);
-        return  genres.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.")
-        : ResponseEntity.status(HttpStatus.OK).body(this.genreService.listByQuery(q));
     }
-
     /*
      * {
      * "name": "Prueba",
@@ -95,38 +109,32 @@ public class GenreController {
     public ResponseEntity<?> postMethod(@Valid @RequestBody GenreDto dto) {
         try {
             this.genreService.save(dto);
-            return responseBuilder.buildResponse(HttpStatus.CREATED, "Se creó el registro de forma exitosa");
-        } catch (Exception e) {
-            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Ocurrió un error inesperado.");
+            return ResponseEntity.status(HttpStatus.CREATED).body("Se creó el registro de forma exitosa");
+        } catch (IllegalArgumentException e) {
+            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
     @PutMapping("/generos/{id}")
     public ResponseEntity<?> putMethod(@PathVariable("id") Long id, @Valid @RequestBody GenreDto dto) {
-        GenreDto data = this.genreService.findById(id);
-        if (data == null) {
-            return responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "Recurso no encontrado.");
+        GenreDto genre = this.genreService.findById(id);
+        if (genre == null) {
+            throw new EntityNotFoundException();
         }
-        try {
-            data.setName(dto.getName());
-            this.genreService.save(data);
-            return responseBuilder.buildResponse(HttpStatus.OK, "Se actualizó el registro de forma exitosa.");
-        } catch (Exception e) {
-            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Ocurrió un error inesperado.");
-        }
+        dto.setId(id);
+        genre.setName(dto.getName());
+        this.genreService.save(dto);
+        return ResponseEntity.status(HttpStatus.OK).body("Se actualizó el registro de forma exitosa.");
     }
 
-    @DeleteMapping("generos/{id}")
-    public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id) {
+    @DeleteMapping("/generos/{id}")
+    public ResponseEntity<String> deleteMethod(@PathVariable("id") Long id) {
         GenreDto data = this.genreService.findById(id);
         if (data == null) {
-            return responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "Recurso no encontrado.");
+            throw new EntityNotFoundException();
         }
-        try {
-            this.genreService.delete(data.getId());
-            return responseBuilder.buildResponse(HttpStatus.OK, "Se eliminó el registro de forma exitosa.");
-        } catch (Exception e) {
-            return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Ocurrió un error inesperado.");
-        }
+
+        this.genreService.delete(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Se eliminó el registro de forma exitosa.");
     }
 }

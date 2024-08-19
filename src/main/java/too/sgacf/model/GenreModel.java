@@ -19,7 +19,7 @@ public class GenreModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nombre", nullable = false, length = 10)
+    @Column(name = "nombre_genero", nullable = false, length = 10)
     private String name;
 
     @Column(name = "estado",nullable = false)
