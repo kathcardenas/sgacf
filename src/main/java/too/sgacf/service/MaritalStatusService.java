@@ -58,7 +58,7 @@ public class MaritalStatusService {
             maritalStatusModel.setStatus(dto.isStatus());
         } else{
             Optional<MaritalStatusModel> maritalOptional = this.repository.findById(dto.getId());
-            if (maritalOptional.isPresent()) {
+            if (maritalOptional.isPresent() || maritalOptional.get().isStatus()) {
                 maritalStatusModel = maritalOptional.get();
                 if (maritalStatusModel.getName().equals(dto.getName()) && maritalStatusModel.getId().equals(dto.getId())) {
                     throw new UnsupportedOperationException();

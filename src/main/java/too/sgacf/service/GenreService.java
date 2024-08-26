@@ -60,7 +60,7 @@ public class GenreService {
         }
          else {
             Optional<GenreModel> genreOptional = this.repository.findById(dto.getId());
-            if (genreOptional.isPresent()) {
+            if (genreOptional.isPresent() || genreOptional.get().isStatus()) {
                 genreModel = genreOptional.get();
                 if (genreModel.getName().equals(dto.getName()) && genreModel.getId().equals(dto.getId())) {
                     throw new UnsupportedOperationException();
