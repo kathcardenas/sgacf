@@ -58,7 +58,7 @@ public class GenreService {
             genreModel = new GenreModel();
             genreModel.setStatus(dto.isStatus());
         }
-        else {
+         else {
             Optional<GenreModel> genreOptional = this.repository.findById(dto.getId());
             if (genreOptional.isPresent()) {
                 genreModel = genreOptional.get();
@@ -74,15 +74,15 @@ public class GenreService {
 
         return this.repository.save(genreModel);
     }
-
-    
     
     public void delete(Long id) {
         Optional<GenreModel> genre = this.repository.findById(id);
-        if (genre.isPresent()) {
+        if (genre.isPresent() || !genre.get().isStatus()) {
             GenreModel genreModel = genre.get();
             genreModel.setStatus(false);
             this.repository.save(genreModel);
+        } else{
+            throw new UnsupportedOperationException();
         }
     }
 

@@ -15,39 +15,35 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
-import too.sgacf.dto.GenreDto;
-import too.sgacf.service.GenreService;
+import too.sgacf.dto.MaritalStatusDto;
+import too.sgacf.service.MaritalStatusService;
 import too.sgacf.utilities.ResponseBuilderUtility;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/v1")
-@Tag(name = "Generos", description = "Controlador para géneros")
-@Slf4j
-public class GenreController {
+@Tag(name = "Estados Civiles", description = "Controlador para estados civiles")
+public class MaritalStatusController {
 
     @Autowired
-    private GenreService genreService;
+    private MaritalStatusService maritalStatusService;
 
     @Autowired
     private ResponseBuilderUtility responseBuilder;
-
-    /*
-     * GET /api/v1/generos - Retrieves all genres
-     * GET /api/v1/generos?estado=value - Retrieves genres by estado
+/*
+     * GET /api/v1/estados-civiles - Retrieves all marital status
+     * GET /api/v1/estados-civiles?status=value - Retrieves marital status by status
      */
-    @GetMapping("/generos")
     @Operation(
-        summary = "Listar Géneros",
-        description = "Recupera todos los géneros o géneros por estado",
+        summary = "Listar Estados Civiles",
+        description = "Recupera todos los estados o estados civiles por estado",
         parameters = {
             @Parameter(
                 name = "status",
@@ -60,86 +56,83 @@ public class GenreController {
             )
         }
     )
+    @GetMapping("/estados-civiles")
     public ResponseEntity<?> getMethod(@RequestParam(required = false) String status) {
-        if (status != null) {
+        if (status!=null) {
             if (status.isEmpty()) {
-                return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Debe ingresar un estado.");
+                return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Debe ingresar un estado.");                
             }
             if (!status.equalsIgnoreCase("true") && !status.equalsIgnoreCase("false")) {
                 return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "El estado debe ser 'true' o 'false'.");
             }
         }
-
         Boolean sStatus = status != null ? Boolean.parseBoolean(status) : null;
 
-        List<GenreDto> generos = (sStatus == null) ? genreService.listAllGeneros() 
-                : genreService.listByStatus(sStatus);
+        List<MaritalStatusDto> statusDtos = (sStatus == null) ? maritalStatusService.listAllMaritalStatus():
+        maritalStatusService.listByStatus(sStatus);
 
-        return generos.isEmpty() ? 
+         return statusDtos.isEmpty() ? 
             responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No existen registros.") :
-            ResponseEntity.status(HttpStatus.OK).body(generos);
+            ResponseEntity.status(HttpStatus.OK).body(statusDtos);
     }
-
+    
     @Operation(
-        summary = "Filtrar Géneros por palabra",
+        summary = "Filtrar Estados civiles por palabra/letra",
         parameters = {
             @Parameter(
                 name = "q",
-                description = "Palabra de filtrado"
+                description = "Palabra/letra de filtrado"
                 
             )
         }
     )
-    @GetMapping("/generos/search")
-    public ResponseEntity<?> getMethodQuery(@RequestParam String q) {
+    @GetMapping("/estados-civiles/search")
+    public ResponseEntity<?> getMethodByQuery(@RequestParam String q) {
         try {
-            List<GenreDto> genres = genreService.listByQuery(q);
-            return genres.isEmpty() ? 
-                responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") : 
-                ResponseEntity.status(HttpStatus.OK).body(genres);
+            List<MaritalStatusDto> maritalStatusDtos = maritalStatusService.listByQuery(q);
+            return maritalStatusDtos.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") 
+            : ResponseEntity.status(HttpStatus.OK).body(maritalStatusDtos);
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
-    /*
+     /*
      * {
      * "name": "Prueba",
      * "status": true
      * }
      */
-    @PostMapping("/generos")
-    public ResponseEntity<?> postMethod(@Valid @RequestBody GenreDto dto) {
+    @PostMapping("/estados-civiles")
+    public ResponseEntity<?> postMethod(@Valid @RequestBody MaritalStatusDto dto) {
         try {
-            this.genreService.save(dto);
-            log.info("Se creo el registro {} ", dto);
+            this.maritalStatusService.save(dto);
             return responseBuilder.buildResponse(HttpStatus.CREATED, "Se creó el registro de forma exitosa");
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
-    @PutMapping("/generos/{id}")
-    public ResponseEntity<?> putMethod(@PathVariable("id") Long id, @Valid @RequestBody GenreDto dto) {
-        GenreDto genre = this.genreService.findById(id);
-        if (genre == null) {
+    @PutMapping("estados-civiles/{id}")
+    public ResponseEntity<?> putMethod(@PathVariable("id") Long id,@Valid @RequestBody MaritalStatusDto dto) {
+        MaritalStatusDto maritalStatusDto = this.maritalStatusService.findById(id);
+        if (maritalStatusDto == null) {
             throw new EntityNotFoundException();
         }
+
         dto.setId(id);
-        genre.setName(dto.getName());
-        this.genreService.save(dto);
-        log.info("Se editó el registro por {} ", dto);
+        maritalStatusDto.setName(dto.getName());
+        this.maritalStatusService.save(maritalStatusDto);
         return responseBuilder.buildResponse(HttpStatus.OK, "Se actualizó el registro de forma exitosa.");
     }
 
-    @DeleteMapping("/generos/{id}")
-    public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id) {
-        GenreDto data = this.genreService.findById(id);
+    @DeleteMapping("estados-civiles/{id}")
+    public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id){
+        MaritalStatusDto data = this.maritalStatusService.findById(id);
         if (data == null || !data.isStatus()) {
             throw new EntityNotFoundException();
         }
-        this.genreService.delete(id);
-        log.info("Se eliminó el registro {}", data);
+        this.maritalStatusService.delete(data.getId());
         return responseBuilder.buildResponse(HttpStatus.OK, "Se eliminó el registro de forma exitosa.");
-        //ResponseEntity.status(HttpStatus.OK).body("Se eliminó el registro de forma exitosa.");
     }
+    
 }
