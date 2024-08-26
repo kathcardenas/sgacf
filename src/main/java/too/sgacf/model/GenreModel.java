@@ -1,5 +1,7 @@
 package too.sgacf.model;
 
+import org.hibernate.envers.Audited;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "generos")
+@Audited
 @Data
 @NoArgsConstructor
 public class GenreModel {

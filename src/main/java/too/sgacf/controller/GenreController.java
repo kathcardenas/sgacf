@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import too.sgacf.dto.GenreDto;
 import too.sgacf.service.GenreService;
 import too.sgacf.utilities.ResponseBuilderUtility;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 @RequestMapping("/api/v1")
 @Tag(name = "Generos", description = "Controlador para géneros")
+@Slf4j
 public class GenreController {
 
     @Autowired
@@ -109,7 +111,8 @@ public class GenreController {
     public ResponseEntity<?> postMethod(@Valid @RequestBody GenreDto dto) {
         try {
             this.genreService.save(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Se creó el registro de forma exitosa");
+            log.info("Se creo el registro {} ", dto);
+            return responseBuilder.buildResponse(HttpStatus.CREATED, "Se creó el registro de forma exitosa");
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -124,17 +127,19 @@ public class GenreController {
         dto.setId(id);
         genre.setName(dto.getName());
         this.genreService.save(dto);
-        return ResponseEntity.status(HttpStatus.OK).body("Se actualizó el registro de forma exitosa.");
+        log.info("Se editó el registro por {} ", dto);
+        return responseBuilder.buildResponse(HttpStatus.OK, "Se actualizó el registro de forma exitosa.");
     }
 
     @DeleteMapping("/generos/{id}")
-    public ResponseEntity<String> deleteMethod(@PathVariable("id") Long id) {
+    public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id) {
         GenreDto data = this.genreService.findById(id);
         if (data == null) {
             throw new EntityNotFoundException();
         }
-
         this.genreService.delete(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Se eliminó el registro de forma exitosa.");
+        log.info("Se eliminó el registro {}", data);
+        return responseBuilder.buildResponse(HttpStatus.OK, "Se eliminó el registro de forma exitosa.");
+        //ResponseEntity.status(HttpStatus.OK).body("Se eliminó el registro de forma exitosa.");
     }
 }
