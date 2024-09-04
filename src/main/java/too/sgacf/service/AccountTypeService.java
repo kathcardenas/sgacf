@@ -48,11 +48,11 @@ public class AccountTypeService {
     public AccountTypeModel save(AccountTypeDto dto){
         Optional<AccountTypeModel> account = this.repository.findByName(dto.getName());
         if (account.isPresent() && (dto.getId()==null || !account.get().getId().equals(dto.getId()))) {
-            throw new IllegalArgumentException("La referencia ya existe.");
+            throw new IllegalArgumentException("El tipo de cuenta ya existe.");
         }
 
         AccountTypeModel accountTypeModel;
-
+        
         if (dto.getId() == null) {
             accountTypeModel = new AccountTypeModel();
             accountTypeModel.setStatus(dto.isStatus());

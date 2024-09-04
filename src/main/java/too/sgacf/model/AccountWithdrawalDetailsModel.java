@@ -1,5 +1,6 @@
 package too.sgacf.model;
 
+import java.math.BigDecimal;
 import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
@@ -14,27 +15,28 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tipo_cuentas")
+@Table(name = "detalle_retiro_cuentas")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Audited
-public class AccountTypeModel {
+public class AccountWithdrawalDetailsModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nombre_tipo_cuenta",nullable = false, length = 20)
-    private String name;
+    @Column(name = "monto_límite_retiro")
+    private BigDecimal amount;
 
     @Column(name = "estado",nullable = false)
     private boolean status;
 
-    public AccountTypeModel(String name, boolean status) {
-        this.name = name;
+    public AccountWithdrawalDetailsModel(BigDecimal amount, boolean status) {
+        this.amount = amount;
         this.status = status;
     }
 
+    
 }
