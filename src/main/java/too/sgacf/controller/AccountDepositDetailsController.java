@@ -1,18 +1,5 @@
 package too.sgacf.controller;
 
-import org.springframework.web.bind.annotation.RestController;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
-import too.sgacf.dto.AccountWithdrawalDetailsDto;
-import too.sgacf.service.AccountWithdrawalDetailsService;
-import too.sgacf.utilities.ResponseBuilderUtility;
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,24 +13,36 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import too.sgacf.dto.AccountDepositDetailsDto;
+import too.sgacf.service.AccountDepositDetailsService;
+import too.sgacf.utilities.ResponseBuilderUtility;
 
 @RestController
 @RequestMapping("/api/v1")
-@Tag(name = "Detalle retiro cuenta", description = "Controlador para límite de retiro de cuenta")
-public class AccountWithdrawalDetailsController {
+@Tag(name = "Detalle depósito cuenta", description = "Controlador para límite de depósito de cuenta")
+public class AccountDepositDetailsController {
+
     @Autowired
-    private AccountWithdrawalDetailsService service;
+    private AccountDepositDetailsService service;
 
     @Autowired
     private ResponseBuilderUtility responseBuilder;
 /*
-     * GET /api/v1/limite-retiro - Retrieves all accounts withdrawal details
-     * GET /api/v1/limite-retiro?status=value - Retrieves accounts withdrawal details by status
+     * GET /api/v1/limite-deposito - Retrieves all account deposit detail
+     * GET /api/v1/limite-deposito?status=value - Retrieves account deposit detail by status
      */
     @Operation(
-        summary = "Listar Límites retiro de cuentas",
-        description = "Recupera todos los límites de retiro de cuentas o límite de retiro de cuentas por estado",
+        summary = "Listar Límites depósito de cuentas",
+        description = "Recupera todos los límites de depósito de cuentas o límite de retiro de cuentas por estado",
         parameters = {
             @Parameter(
                 name = "status",
@@ -56,7 +55,7 @@ public class AccountWithdrawalDetailsController {
             )
         }
     )
-    @GetMapping("/limite-retiro")
+    @GetMapping("/limite-deposito")
     public ResponseEntity<?> getMethod(@RequestParam(required = false) String status) {
         if (status!=null) {
             if (status.isEmpty()) {
@@ -68,16 +67,16 @@ public class AccountWithdrawalDetailsController {
         }
         Boolean sStatus = status != null ? Boolean.parseBoolean(status) : null;
 
-        List<AccountWithdrawalDetailsDto> withdrawalDto = (sStatus == null) ? service.listAllAccountsWithdrawalDetails():
+        List<AccountDepositDetailsDto> depositDto = (sStatus == null) ? service.listAllAccountDepositsDetails():
         service.listByStatus(sStatus);
 
-         return withdrawalDto.isEmpty() ? 
+         return depositDto.isEmpty() ? 
             responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No existen registros.") :
-            ResponseEntity.status(HttpStatus.OK).body(withdrawalDto);
+            ResponseEntity.status(HttpStatus.OK).body(depositDto);
     }
     
     @Operation(
-        summary = "Filtrar límite de retiro de cuentas por palabra/letra",
+        summary = "Filtrar límite de depósito de cuentas por palabra/letra",
         parameters = {
             @Parameter(
                 name = "q",
@@ -86,12 +85,12 @@ public class AccountWithdrawalDetailsController {
             )
         }
     )
-    @GetMapping("/limite-retiro/search")
+    @GetMapping("/limite-deposito/search")
     public ResponseEntity<?> getMethodByQuery(@RequestParam String q) {
         try {
-            List<AccountWithdrawalDetailsDto> withdrawalDto = service.listByQuery(q);
-            return withdrawalDto.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") 
-            : ResponseEntity.status(HttpStatus.OK).body(withdrawalDto);
+            List<AccountDepositDetailsDto> depositDto = service.listByQuery(q);
+            return depositDto.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") 
+            : ResponseEntity.status(HttpStatus.OK).body(depositDto);
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -102,8 +101,8 @@ public class AccountWithdrawalDetailsController {
      * "status": true
      * }
      */
-    @PostMapping("/limite-retiro")
-    public ResponseEntity<?> postMethod(@Valid @RequestBody AccountWithdrawalDetailsDto dto) {
+    @PostMapping("/limite-deposito")
+    public ResponseEntity<?> postMethod(@Valid @RequestBody AccountDepositDetailsDto dto) {
         try {
             this.service.save(dto);
             return responseBuilder.buildResponse(HttpStatus.CREATED, "Se creó el registro de forma exitosa");
@@ -112,22 +111,22 @@ public class AccountWithdrawalDetailsController {
         }
     }
 
-    @PutMapping("/limite-retiro/{id}")
-    public ResponseEntity<?> putMethod(@PathVariable("id") Long id,@Valid @RequestBody AccountWithdrawalDetailsDto dto) {
-        AccountWithdrawalDetailsDto withdrawalDto = this.service.findById(id);
-        if (withdrawalDto == null) {
+    @PutMapping("/limite-deposito/{id}")
+    public ResponseEntity<?> putMethod(@PathVariable("id") Long id,@Valid @RequestBody AccountDepositDetailsDto dto) {
+        AccountDepositDetailsDto depositDto = this.service.findById(id);
+        if (depositDto == null) {
             throw new EntityNotFoundException();
         }
 
         dto.setId(id);
-        withdrawalDto.setAmount(dto.getAmount());
-        this.service.save(withdrawalDto);
+        depositDto.setAmount(dto.getAmount());
+        this.service.save(depositDto);
         return responseBuilder.buildResponse(HttpStatus.OK, "Se actualizó el registro de forma exitosa.");
     }
 
-    @DeleteMapping("/limite-retiro/{id}")
+    @DeleteMapping("/limite-deposito/{id}")
     public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id){
-        AccountWithdrawalDetailsDto data = this.service.findById(id);
+        AccountDepositDetailsDto data = this.service.findById(id);
         if (data == null || !data.isStatus()) {
             throw new EntityNotFoundException();
         }
