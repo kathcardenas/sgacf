@@ -19,9 +19,9 @@ public class ReferenceTypeService {
     @Autowired
     private IReferenceTypeRepository repository;
 
-    public List<ReferenceTypeDto> listAllReferencesStatus(){
-        List<ReferenceTypeModel> status = repository.findAll(Sort.by("id").ascending());
-        return status.stream().map(this::convertToDto).collect(Collectors.toList());
+    public List<ReferenceTypeDto> listAllReferencesType(){
+        List<ReferenceTypeModel> references = repository.findAll(Sort.by("id").ascending());
+        return references.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     public List<ReferenceTypeDto> listByStatus(Boolean status){
@@ -37,8 +37,8 @@ public class ReferenceTypeService {
             throw new IllegalArgumentException("Debe ingresar un texto para realizar la búsqueda.");
         }
 
-        List<ReferenceTypeModel> refecenseStatusModel = this.repository.findByQuery(query);
-        return refecenseStatusModel.stream().map(this::convertToDto).collect(Collectors.toList());
+        List<ReferenceTypeModel> referenceTypeModels = this.repository.findByQuery(query);
+        return referenceTypeModels.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     public ReferenceTypeDto findById(Long id){
@@ -46,8 +46,8 @@ public class ReferenceTypeService {
     }
 
     public ReferenceTypeModel save(ReferenceTypeDto dto){
-        Optional<ReferenceTypeModel> referenceStatus = this.repository.findByName(dto.getName());
-        if (referenceStatus.isPresent() && (dto.getId()==null || !referenceStatus.get().getId().equals(dto.getId()))) {
+        Optional<ReferenceTypeModel> referenceTyOptional = this.repository.findByName(dto.getName());
+        if (referenceTyOptional.isPresent() && (dto.getId()==null || !referenceTyOptional.get().getId().equals(dto.getId()))) {
             throw new IllegalArgumentException("La referencia ya existe.");
         }
 
@@ -74,9 +74,9 @@ public class ReferenceTypeService {
     }
 
     public void delete(Long id){
-        Optional<ReferenceTypeModel> status = this.repository.findById(id);
-        if (status.isPresent() || !status.get().isStatus()) {
-            ReferenceTypeModel referenceTypeModel = status.get();
+        Optional<ReferenceTypeModel> referenceOptional = this.repository.findById(id);
+        if (referenceOptional.isPresent() || !referenceOptional.get().isStatus()) {
+            ReferenceTypeModel referenceTypeModel = referenceOptional.get();
             referenceTypeModel.setStatus(false);
             this.repository.save(referenceTypeModel);
         }
@@ -85,11 +85,11 @@ public class ReferenceTypeService {
         }
     }
 
-    public ReferenceTypeDto convertToDto(ReferenceTypeModel statusModel){
+    public ReferenceTypeDto convertToDto(ReferenceTypeModel referenceTypeModel){
         ReferenceTypeDto dto = new ReferenceTypeDto();
-        dto.setId(statusModel.getId());
-        dto.setName(statusModel.getName());
-        dto.setStatus(statusModel.isStatus());
+        dto.setId(referenceTypeModel.getId());
+        dto.setName(referenceTypeModel.getName());
+        dto.setStatus(referenceTypeModel.isStatus());
         return dto;
     }
 

@@ -35,8 +35,8 @@ public class ReferenceTypeController {
     @Autowired
     private ResponseBuilderUtility responseBuilder;
 /*
-     * GET /api/v1/referencias - Retrieves all references type
-     * GET /api/v1/referencias?status=value - Retrieves references type status by status
+     * GET /api/v1/tipo-referencias - Retrieves all references type
+     * GET /api/v1/tipo-referencias?status=value - Retrieves references type by status
      */
     @Operation(
         summary = "Listar Tipo de Referencias",
@@ -53,7 +53,7 @@ public class ReferenceTypeController {
             )
         }
     )
-    @GetMapping("/referencias")
+    @GetMapping("/tipos-referencias")
     public ResponseEntity<?> getMethod(@RequestParam(required = false) String status) {
         if (status!=null) {
             if (status.isEmpty()) {
@@ -65,12 +65,12 @@ public class ReferenceTypeController {
         }
         Boolean sStatus = status != null ? Boolean.parseBoolean(status) : null;
 
-        List<ReferenceTypeDto> statusDtos = (sStatus == null) ? referenceTypeService.listAllReferencesStatus():
+        List<ReferenceTypeDto> referenceTypeDtos = (sStatus == null) ? referenceTypeService.listAllReferencesType():
         referenceTypeService.listByStatus(sStatus);
 
-         return statusDtos.isEmpty() ? 
+         return referenceTypeDtos.isEmpty() ? 
             responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No existen registros.") :
-            ResponseEntity.status(HttpStatus.OK).body(statusDtos);
+            ResponseEntity.status(HttpStatus.OK).body(referenceTypeDtos);
     }
     
     @Operation(
@@ -83,12 +83,12 @@ public class ReferenceTypeController {
             )
         }
     )
-    @GetMapping("/referencias/search")
+    @GetMapping("/tipos-referencias/search")
     public ResponseEntity<?> getMethodByQuery(@RequestParam String q) {
         try {
-            List<ReferenceTypeDto> referenceStatusDtos = referenceTypeService.listByQuery(q);
-            return referenceStatusDtos.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") 
-            : ResponseEntity.status(HttpStatus.OK).body(referenceStatusDtos);
+            List<ReferenceTypeDto> referenceTypeDtos = referenceTypeService.listByQuery(q);
+            return referenceTypeDtos.isEmpty() ? responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") 
+            : ResponseEntity.status(HttpStatus.OK).body(referenceTypeDtos);
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -99,7 +99,7 @@ public class ReferenceTypeController {
      * "status": true
      * }
      */
-    @PostMapping("/referencias")
+    @PostMapping("/tipos-referencias")
     public ResponseEntity<?> postMethod(@Valid @RequestBody ReferenceTypeDto dto) {
         try {
             this.referenceTypeService.save(dto);
@@ -109,20 +109,20 @@ public class ReferenceTypeController {
         }
     }
 
-    @PutMapping("/referencias/{id}")
+    @PutMapping("/tipos-referencias/{id}")
     public ResponseEntity<?> putMethod(@PathVariable("id") Long id,@Valid @RequestBody ReferenceTypeDto dto) {
-        ReferenceTypeDto referenceStatusDto = this.referenceTypeService.findById(id);
-        if (referenceStatusDto == null) {
+        ReferenceTypeDto referenceTypeDto = this.referenceTypeService.findById(id);
+        if (referenceTypeDto == null) {
             throw new EntityNotFoundException();
         }
 
         dto.setId(id);
-        referenceStatusDto.setName(dto.getName());
-        this.referenceTypeService.save(referenceStatusDto);
+        referenceTypeDto.setName(dto.getName());
+        this.referenceTypeService.save(referenceTypeDto);
         return responseBuilder.buildResponse(HttpStatus.OK, "Se actualizó el registro de forma exitosa.");
     }
 
-    @DeleteMapping("/referencias/{id}")
+    @DeleteMapping("/tipos-referencias/{id}")
     public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id){
         ReferenceTypeDto data = this.referenceTypeService.findById(id);
         if (data == null || !data.isStatus()) {
