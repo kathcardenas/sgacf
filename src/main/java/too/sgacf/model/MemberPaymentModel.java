@@ -1,6 +1,7 @@
 package too.sgacf.model;
-
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
@@ -15,28 +16,33 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "detalle_retiro_cuentas")
+@Table(name = "pago_asociados")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Audited
-public class AccountWithdrawalDetailsModel {
+public class MemberPaymentModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "monto_límite_retiro", nullable = false)
+    @Column(name = "monto_miembro_asociado", nullable = false)
     private BigDecimal amount;
+
+    @Column(name = "fecha_pago", nullable = false)
+    private LocalDateTime currentDate;
+
+    @Column(name = "estado_pago_asociado")
+    private boolean paymentStatus;
 
     @Column(name = "estado",nullable = false)
     private boolean status;
 
-    public AccountWithdrawalDetailsModel(BigDecimal amount, boolean status) {
+    public MemberPaymentModel(BigDecimal amount, boolean paymentStatus, boolean status) {
         this.amount = amount;
+        this.paymentStatus = paymentStatus;
         this.status = status;
-    }
-
-    
+    }    
 }

@@ -28,7 +28,7 @@ public class AccountDepositDetailsModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "monto_limite_aporte")
+    @Column(name = "monto_limite_aporte", nullable = false)
     private BigDecimal amount;
 
     @Column(name = "estado",nullable = false)
