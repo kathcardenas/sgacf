@@ -1,11 +1,17 @@
 package too.sgacf.controller;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,34 +21,25 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import too.sgacf.dto.GenreDto;
-import too.sgacf.service.GenreService;
+import too.sgacf.dto.FamilyRelationshipDto;
+import too.sgacf.service.FamilyRelationshipService;
 import too.sgacf.utilities.ResponseBuilderUtility;
-
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1")
-@Tag(name = "Generos", description = "Controlador para géneros")
-public class GenreController {
-
+@Tag(name = "Parentezco Beneficiarios", description = "Controlador para parentezco beneficiarios")
+public class FamilyRelationshipController {
     @Autowired
-    private GenreService genreService;
+    private FamilyRelationshipService service;
 
     @Autowired
     private ResponseBuilderUtility responseBuilder;
 
     /*
-     * GET /api/v1/generos - Retrieves all genres
-     * GET /api/v1/generos?estado=value - Retrieves genres by estado
+     * GET /api/v1/parentezcos - Retrieves all relationships
+     * GET /api/v1/parentezcos?estado=value - Retrieves relationships by estado
      */
-    @GetMapping("/generos")
+    @GetMapping("/parentezcos")
     @Operation(
         summary = "Listar Géneros",
         description = "Recupera todos los géneros o géneros por estado",
@@ -70,12 +67,12 @@ public class GenreController {
 
         Boolean sStatus = status != null ? Boolean.parseBoolean(status) : null;
 
-        List<GenreDto> generos = (sStatus == null) ? genreService.listAllGeneros() 
-                : genreService.listByStatus(sStatus);
+        List<FamilyRelationshipDto> relationships = (sStatus == null) ? service.listAllrelationships() 
+                : service.listByStatus(sStatus);
 
-        return generos.isEmpty() ? 
+        return relationships.isEmpty() ? 
             responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No existen registros.") :
-            ResponseEntity.status(HttpStatus.OK).body(generos);
+            ResponseEntity.status(HttpStatus.OK).body(relationships);
     }
 
     @Operation(
@@ -88,13 +85,13 @@ public class GenreController {
             )
         }
     )
-    @GetMapping("/generos/search")
+    @GetMapping("/parentezcos/search")
     public ResponseEntity<?> getMethodQuery(@RequestParam String q) {
         try {
-            List<GenreDto> genres = genreService.listByQuery(q);
-            return genres.isEmpty() ? 
+            List<FamilyRelationshipDto> relationships = service.listByQuery(q);
+            return relationships.isEmpty() ? 
                 responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") : 
-                ResponseEntity.status(HttpStatus.OK).body(genres);
+                ResponseEntity.status(HttpStatus.OK).body(relationships);
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -105,35 +102,35 @@ public class GenreController {
      * "status": true
      * }
      */
-    @PostMapping("/generos")
-    public ResponseEntity<?> postMethod(@Valid @RequestBody GenreDto dto) {
+    @PostMapping("/parentezcos")
+    public ResponseEntity<?> postMethod(@Valid @RequestBody FamilyRelationshipDto dto) {
         try {
-            this.genreService.save(dto);
+            this.service.save(dto);
             return responseBuilder.buildResponse(HttpStatus.CREATED, "Se creó el registro de forma exitosa");
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
-    @PutMapping("/generos/{id}")
-    public ResponseEntity<?> putMethod(@PathVariable("id") Long id, @Valid @RequestBody GenreDto dto) {
-        GenreDto genre = this.genreService.findById(id);
+    @PutMapping("/parentezcos/{id}")
+    public ResponseEntity<?> putMethod(@PathVariable("id") Long id, @Valid @RequestBody FamilyRelationshipDto dto) {
+        FamilyRelationshipDto genre = this.service.findById(id);
         if (genre == null) {
             throw new EntityNotFoundException();
         }
         dto.setId(id);
         genre.setName(dto.getName());
-        this.genreService.save(dto);
+        this.service.save(dto);
         return responseBuilder.buildResponse(HttpStatus.OK, "Se actualizó el registro de forma exitosa.");
     }
 
-    @DeleteMapping("/generos/{id}")
+    @DeleteMapping("/parentezcos/{id}")
     public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id) {
-        GenreDto data = this.genreService.findById(id);
+        FamilyRelationshipDto data = this.service.findById(id);
         if (data == null || !data.isStatus()) {
             throw new EntityNotFoundException();
         }
-        this.genreService.delete(id);
+        this.service.delete(id);
         return responseBuilder.buildResponse(HttpStatus.OK, "Se eliminó el registro de forma exitosa.");
     }
 }

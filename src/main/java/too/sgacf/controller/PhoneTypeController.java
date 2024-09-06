@@ -1,11 +1,17 @@
 package too.sgacf.controller;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,37 +21,28 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import too.sgacf.dto.GenreDto;
-import too.sgacf.service.GenreService;
+import too.sgacf.dto.PhoneTypeDto;
+import too.sgacf.service.PhoneTypeService;
 import too.sgacf.utilities.ResponseBuilderUtility;
-
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1")
-@Tag(name = "Generos", description = "Controlador para géneros")
-public class GenreController {
-
+@Tag(name = "Tipo de Teléfonos", description = "Controlador para tipo de teléfonos")
+public class PhoneTypeController {
     @Autowired
-    private GenreService genreService;
+    private PhoneTypeService service;
 
     @Autowired
     private ResponseBuilderUtility responseBuilder;
 
     /*
-     * GET /api/v1/generos - Retrieves all genres
-     * GET /api/v1/generos?estado=value - Retrieves genres by estado
+     * GET /api/v1/tipo-telefonos - Retrieves all genres
+     * GET /api/v1/tipo-telefonos?estado=value - Retrieves genres by estado
      */
-    @GetMapping("/generos")
+    @GetMapping("/tipo-telefonos")
     @Operation(
-        summary = "Listar Géneros",
-        description = "Recupera todos los géneros o géneros por estado",
+        summary = "Listar Tipo de teléfonos",
+        description = "Recupera todos los tipos de teléfonos o tipos de teléfonos por estado",
         parameters = {
             @Parameter(
                 name = "status",
@@ -70,8 +67,8 @@ public class GenreController {
 
         Boolean sStatus = status != null ? Boolean.parseBoolean(status) : null;
 
-        List<GenreDto> generos = (sStatus == null) ? genreService.listAllGeneros() 
-                : genreService.listByStatus(sStatus);
+        List<PhoneTypeDto> generos = (sStatus == null) ? service.listAllphones() 
+                : service.listByStatus(sStatus);
 
         return generos.isEmpty() ? 
             responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No existen registros.") :
@@ -79,7 +76,7 @@ public class GenreController {
     }
 
     @Operation(
-        summary = "Filtrar Géneros por palabra",
+        summary = "Filtrar Tipos de teléfonos por palabra",
         parameters = {
             @Parameter(
                 name = "q",
@@ -88,13 +85,13 @@ public class GenreController {
             )
         }
     )
-    @GetMapping("/generos/search")
+    @GetMapping("/tipo-telefonos/search")
     public ResponseEntity<?> getMethodQuery(@RequestParam String q) {
         try {
-            List<GenreDto> genres = genreService.listByQuery(q);
-            return genres.isEmpty() ? 
+            List<PhoneTypeDto> phonesType = service.listByQuery(q);
+            return phonesType.isEmpty() ? 
                 responseBuilder.buildResponse(HttpStatus.NOT_FOUND, "No se encontraron registros.") : 
-                ResponseEntity.status(HttpStatus.OK).body(genres);
+                ResponseEntity.status(HttpStatus.OK).body(phonesType);
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -105,35 +102,35 @@ public class GenreController {
      * "status": true
      * }
      */
-    @PostMapping("/generos")
-    public ResponseEntity<?> postMethod(@Valid @RequestBody GenreDto dto) {
+    @PostMapping("/tipo-telefonos")
+    public ResponseEntity<?> postMethod(@Valid @RequestBody PhoneTypeDto dto) {
         try {
-            this.genreService.save(dto);
+            this.service.save(dto);
             return responseBuilder.buildResponse(HttpStatus.CREATED, "Se creó el registro de forma exitosa");
         } catch (IllegalArgumentException e) {
             return responseBuilder.buildResponse(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
-    @PutMapping("/generos/{id}")
-    public ResponseEntity<?> putMethod(@PathVariable("id") Long id, @Valid @RequestBody GenreDto dto) {
-        GenreDto genre = this.genreService.findById(id);
-        if (genre == null) {
+    @PutMapping("/tipo-telefonos/{id}")
+    public ResponseEntity<?> putMethod(@PathVariable("id") Long id, @Valid @RequestBody PhoneTypeDto dto) {
+        PhoneTypeDto phone = this.service.findById(id);
+        if (phone == null) {
             throw new EntityNotFoundException();
         }
         dto.setId(id);
-        genre.setName(dto.getName());
-        this.genreService.save(dto);
+        phone.setName(dto.getName());
+        this.service.save(dto);
         return responseBuilder.buildResponse(HttpStatus.OK, "Se actualizó el registro de forma exitosa.");
     }
 
-    @DeleteMapping("/generos/{id}")
+    @DeleteMapping("/tipo-telefonos/{id}")
     public ResponseEntity<?> deleteMethod(@PathVariable("id") Long id) {
-        GenreDto data = this.genreService.findById(id);
+        PhoneTypeDto data = this.service.findById(id);
         if (data == null || !data.isStatus()) {
             throw new EntityNotFoundException();
         }
-        this.genreService.delete(id);
+        this.service.delete(id);
         return responseBuilder.buildResponse(HttpStatus.OK, "Se eliminó el registro de forma exitosa.");
     }
 }
